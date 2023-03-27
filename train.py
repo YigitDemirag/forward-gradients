@@ -40,30 +40,28 @@ def train(key, epochs, batch_size, lr):
     @jit
     def update(key, i, opt_state, batch):
         params = get_params(opt_state)
-        #loss_value, grads = value_and_grad(loss)(params, batch)
+        loss_value, grads = value_and_grad(loss)(params, batch)
         
         # Calculate value and loss via vjp
         #loss_value, f_vjp = vjp(loss, params, batch)
         #grads, _ = f_vjp(jnp.ones_like(loss_value))
 
         # Calculate value and loss via jvp
-        # Create a function that takes params pytree and returns random values in the same structure
         v = create_v(key, params)
         loss_value, drct_grad = jvp(loss, (params, batch),
                                           (v, tree_map(lambda x: jnp.zeros_like(x), batch)))
-        grads = tree_map(lambda v_leaf: v_leaf*drct_grad, v)
-
-        return opt_update(i, grads, opt_state), loss_value
+        grads = tree_map(lambda v_leaf: v_leaf*jnp.clip(drct_grad,-1,1), v)
+        return opt_update(i, grads, opt_state), loss_value, drct_grad
 
     iter_cnt = 0
     for epoch_id in range(epochs):
         for batch_id, batch in enumerate(get_train_batches(batch_size)):
             key, subkey = random.split(key)
-            opt_state, loss_value = update(key, batch_id, opt_state, batch)
+            opt_state, loss_value, drct_grad = update(key, batch_id, opt_state, batch)
             iter_cnt += 1
             if batch_id % 10 == 0:
                 params = get_params(opt_state)
-                wandb.log({'loss': loss_value, 'iter': iter_cnt})
+                wandb.log({'loss': loss_value, 'iter': iter_cnt, 'drct_grad':drct_grad})
 
         params = get_params(opt_state)
         train_acc = 100 * sum(accuracy(params, train_batch) for train_batch in get_train_batches(batch_size)) / len(get_train_batches(batch_size))
