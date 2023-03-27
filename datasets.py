@@ -11,6 +11,7 @@ def get_batches(batch_size, split):
     # Flatten images and convert labels to one-hot
     def preprocess(image, label):
         image = tf.reshape(image, [-1])
+        image = tf.cast(image, tf.float32)
         label = tf.one_hot(label, depth=10)
         return image, label
 
