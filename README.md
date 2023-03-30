@@ -1,6 +1,6 @@
 # Gradients without Backpropagation - JAX Implementation
 
-This repository contains a JAX implementation of the methods described in the paper [Gradients without Backpropagation](https://arxiv.org/abs/2202.08587) by Baydin, A. G. et al. (ArXiv 2022, doi:10.48550/arxiv.2202.08587).
+This repository contains a JAX implementation of the methods described in the paper [Gradients without Backpropagation](https://arxiv.org/abs/2202.08587)
 
 Sometimes, all we want is to get rid of backpropagation of errors and estimate unbiased gradient of loss function during single inference pass :)
 
