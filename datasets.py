@@ -1,7 +1,6 @@
 import tensorflow as tf
 tf.config.set_visible_devices([], device_type='GPU')
 import tensorflow_datasets as tfds
-import jax.numpy as jnp
 
 def get_batches(batch_size, split):
     # Get MNIST data as (image, label) pairs
