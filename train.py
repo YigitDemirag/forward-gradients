@@ -70,26 +70,26 @@ def train(key, epochs, batch_size, lr, num_layers, ad_type, drct_der_clip):
         """Compute loss and gradients using JVP"""
         v = create_v(key, params)
         _loss = partial(loss, batch=batch)
-        loss_value, drct_grad = jvp(_loss, (params,), (v,))
+        loss_value, drct_drv = jvp(_loss, (params,), (v,))
         grads = tree_map(lambda v_leaf: v_leaf * jnp.clip(
-            drct_grad, -drct_der_clip, drct_der_clip), v)
-        return loss_value, grads, drct_grad
+            drct_drv, -drct_der_clip, drct_der_clip), v)
+        return loss_value, grads, drct_drv
 
     @jit
     def update(key, i, opt_state, batch, ad_type):
         params = get_params(opt_state)
-        loss_value, grads, drct_grad = switch(
+        loss_value, grads, drct_drv = switch(
             ad_type,
             [loss_and_grads_with_jvp, loss_and_grads_with_vjp],
             key, params, batch
         )
-        return opt_update(i, grads, opt_state), loss_value, drct_grad
+        return opt_update(i, grads, opt_state), loss_value, drct_drv
 
     iter_cnt = 0
     for _ in range(epochs):
         for batch_id, batch in enumerate(get_train_batches(batch_size)):
             key, _ = random.split(key)
-            opt_state, loss_value, drct_grad = update(
+            opt_state, loss_value, drct_drv = update(
                 key, iter_cnt, opt_state, batch, ad_type
             )
             iter_cnt += 1
@@ -98,7 +98,7 @@ def train(key, epochs, batch_size, lr, num_layers, ad_type, drct_der_clip):
                 wandb.log({
                     'loss': loss_value,
                     'iter': iter_cnt,
-                    'drct_grad': drct_grad
+                    'drct_drv': drct_drv
                 })
 
         params = get_params(opt_state)
