@@ -8,6 +8,7 @@ Sometimes, all we want is to get rid of backpropagation of errors and estimate u
 
 The code demonstrates how to train a simple MLP on MNIST, using either forward gradients (described as $(\nabla f(\boldsymbol{\theta}) \cdot \boldsymbol{v}) \boldsymbol{v}$) calculated by JVP (Jacobian-vector product, forward AD) or traditional VJP (vector-Jacobian product, aka reverse AD) methods. To investigate how stable and scalable the forward gradients method is (as the variance of the estimate is proportional to the number of parameters), you can increase `--num_layers` parameters.
 
+Note: It seems like this  doesn't efficiently scale beyond 10 layers because variance of the gradient estimation depends on number of parameters of the network.
 
 ![Comparison](img/plot.png)
 
